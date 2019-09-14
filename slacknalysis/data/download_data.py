@@ -1,11 +1,13 @@
-from slacknalysis.utils import channels, oath
-from slacker import Slacker
+import argparse
 import json
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from collections import defaultdict
 import os
+import sys
+from collections import defaultdict
+from datetime import datetime
+
 import pandas as pd
+from dateutil.relativedelta import relativedelta
+from slacker import Slacker
 
 
 def _months_ago(months=3):
@@ -34,7 +36,7 @@ def save_file(obj, directory, filename):
         json.dump(obj, f, indent=4, separators=(',', ': '))
 
 
-def get_channel_messages(sßlack, channel_id, months=3):
+def get_channel_messages(slack, channel_id, months=3):
     """ Repeatedly que for messages up until a certain date"""
 
     latest_timestamp = datetime.now().timestamp()
@@ -61,7 +63,7 @@ def get_channel_messages(sßlack, channel_id, months=3):
 def download_all_profile_names(slack):
     """ Queries for all users in workspace """
 
-    response = slack.urs.list()
+    response = slack.users.list()
     response = json.loads(response.raw)
 
     if not response['ok']:
@@ -73,7 +75,7 @@ def download_all_profile_names(slack):
         name = member['name']
         profiles[id] = name
 
-    save_file(profiles, 'profiles', 'profiles.json')
+    save_file(profiles, 'results/raw/profiles', 'profiles.json')
 
 
 def download_all_channel_messages(slack, channels, months=3):
@@ -85,10 +87,4 @@ def download_all_channel_messages(slack, channels, months=3):
         for number, response in enumerate(get_channel_messages(slack, channel_id, months)):
             filename = f'{channel_name}_{number}.json'
 
-            save_file(response, 'results', filename)
-
-
-if __name__ == "__main__":
-    slack = Slacker(oath)
-    download_all_channel_messages(slack, channels, months=6)
-    download_all_profile_names(slack)
+            save_file(response, 'results/raw/messages', filename)
