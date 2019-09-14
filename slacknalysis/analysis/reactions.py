@@ -1,27 +1,6 @@
 import pandas as pd
 from pandas.io.json import json_normalize
-
-
-def parse_reactions(reactions, profiles):
-
-    """ Reshape nested reactions blob into something usable """
-
-    reactions = reactions[['ts', 'reactions']].dropna(subset=['reactions'])
-
-    master_reactions = pd.DataFrame()
-    for _, col in reactions.iterrows():
-        tmp = json_normalize(col['reactions'])
-        tmp['ts'] = col['ts']
-        master_reactions = pd.concat([master_reactions, tmp], ignore_index=True)
-    
-    master_reactions = master_reactions.explode('users') \
-                                       .drop('count', axis=1) \
-                                       .rename(columns={'name': 'reaction', 'users': 'user'})
-
-    master_reactions = master_reactions.merge(profiles, on='user') \
-                                       .drop('user', axis=1)
-    
-    return master_reactions
+import os
 
 
 def create_index(reactions):
@@ -78,6 +57,7 @@ def likelihood_to_use_reaction(reactions, reaction_name, reaction_threshold=5):
     
     return reactions
 
+
 def most_used_reaction(reactions):
     
     """ What are the most used reactions? """
@@ -87,6 +67,7 @@ def most_used_reaction(reactions):
                                .sort_values('proportion_of_all_reactions', ascending=False)
     
     return reactions
+
 
 def top_reaction_by_user(reactions, username, reaction_threshold=5, sort_col='index'):
     
@@ -101,3 +82,26 @@ def top_reaction_by_user(reactions, username, reaction_threshold=5, sort_col='in
                                .sort_values(sort_col, ascending=False)
     
     return reactions
+
+
+def write_reaction_analysis(messages, profiles, reactions, users_to_analyze, reactions_to_analyze):
+
+    if not os.path.exists('results/final'):
+        os.makedirs('results/final')
+
+    most_emotionally_reactive_comments_df = most_emotionally_reactive_comments(messages, reactions)
+    most_emotionally_reactive_comments_df.to_csv('results/final/most_emotionally_reactive_comments.csv', index=False)
+
+    reactions = create_index(reactions)
+    reactions.to_csv('results/final/reaction_by_user_index.csv', index=False)
+
+    most_used_reaction_df = most_used_reaction(reactions)
+    most_used_reaction_df.to_csv('results/final/most_used_reaction.csv', index=False)
+
+    for user in users_to_analyze:
+        top_reaction_by_user_df = top_reaction_by_user(reactions, user)
+        top_reaction_by_user_df.to_csv(f"results/final/top_reaction_for_{user.replace('.', ' ')}.csv", index=False)
+
+    for reaction in reactions_to_analyze:
+        likelihood_to_use_reaction_df = likelihood_to_use_reaction(reactions, reaction)
+        likelihood_to_use_reaction_df.to_csv(f'results/final/likelihood_to_use_{reaction}.csv', index=False)

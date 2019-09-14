@@ -104,10 +104,8 @@ venv.bak/
 .mypy_cache/
 
 # don't commit!
-utils.py
+config.py
 results/
-analysis/
-profiles/
 
 # cruft
 .DS_Store
