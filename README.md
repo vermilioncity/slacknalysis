@@ -18,7 +18,7 @@ users:read
 
 ## Using slacknalysis
 
-It's assumed you have a utils.py file in slacknalysis of the following structure:
+It's assumed you have a config.py file in slacknalysis of the following structure:
 
 ```python
 channels = {'channel1_name': 'channel1_id',
