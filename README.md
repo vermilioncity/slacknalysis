@@ -10,11 +10,11 @@ Small project to analyze some Slack data with the Slacker API client.  Can compi
 
 ## Scopes
 
-channels:history
-channels:read
-emoji:read
-reactions:read
-users:read
+- channels:history
+- channels:read
+- emoji:read
+- reactions:read
+- users:read
 
 ## Using slacknalysis
 
@@ -26,7 +26,7 @@ channels = {'channel1_name': 'channel1_id',
             'channel3_name': 'channel3_id'
             }
 
-oath = 'your_oath'
+slack_oath = 'your_oath'
 ```
 
 ### Downloading data
