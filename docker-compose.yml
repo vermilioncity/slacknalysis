@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  database:
+    image: 'postgres:12.0-alpine'
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./volumes/postgres:/var/lib/postgresql/data"
+    env_file:
+      - ".env"
+  scraper:
+    build: './slacknalysis/'
+    image: 'scraper:latest'
+    volumes:
+      - "./slacknalysis:/slacknalysis"
+    depends_on:
+      - database
+    env_file:
+      - ".env"
+      - "scraper.env"
+    environment:
+      - DB_SERVICE=database

@@ -40,3 +40,7 @@ In addition to downloading raw JSON, it will save a cleaned pandas-friendly vers
 
 Assuming you have data on hand, slacknalysis will provide top-line analyses of all messages and reactions.  If you want analyses by user or reaction, you can pass in the users/reactions of interest with a flag.
 `python -m slacknalysis.slacknalysis --users "moe.howard" "larry.fine" "curly.howard" --reactions "joy" "+1"`
+
+## Running Docker
+docker build -t pytest --file ./docker/scraper/Dockerfile .
+docker run -v 

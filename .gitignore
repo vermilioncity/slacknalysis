@@ -89,6 +89,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*.env
 
 # Spyder project settings
 .spyderproject
@@ -104,9 +105,9 @@ venv.bak/
 .mypy_cache/
 
 # don't commit!
-config.py
-results/
+volumes/
 
 # cruft
 .DS_Store
 .vscode/
+.idea/
