@@ -21,7 +21,7 @@ def upgrade():
         'giphys',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('message_ts', sa.Numeric(16, 6), sa.ForeignKey('messages.ts'), nullable=False),
-        sa.Column('title', sa.String(30), nullable=False),
+        sa.Column('title', sa.String(50), nullable=False),
         sa.Column('image_url', sa.String(200), nullable=False)
     )
 

@@ -21,7 +21,7 @@ def upgrade():
         'reactions',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('message_ts', sa.Numeric(16, 6), sa.ForeignKey('messages.ts'), nullable=False),
-        sa.Column('name', sa.String(30), nullable=False),
+        sa.Column('name', sa.String(50), nullable=False),
         sa.Column('user_id', sa.String(30), sa.ForeignKey('users.id'), nullable=False)
     )
 

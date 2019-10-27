@@ -1,0 +1,9 @@
+# git
+.git
+.gitignore
+
+# mac
+.DS_Store
+
+# tests
+.pytest_cache/*

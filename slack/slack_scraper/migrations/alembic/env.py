@@ -1,11 +1,16 @@
 import logging
 from logging.config import fileConfig
-from slacknalysis.data.db import db_url
+import os
+import sys
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
+
+parent_dir = os.path.abspath(os.getcwd())
+sys.path.append(parent_dir)
+
+from slack_scraper.db import db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

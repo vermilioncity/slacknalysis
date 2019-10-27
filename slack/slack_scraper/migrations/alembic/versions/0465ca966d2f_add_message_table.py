@@ -22,7 +22,7 @@ def upgrade():
         sa.Column('ts', sa.Numeric(16, 6), nullable=False, primary_key=True),
         sa.Column('channel_id', sa.String(9), sa.ForeignKey('channels.id')),
         sa.Column('user_id', sa.String(9), sa.ForeignKey('users.id')),
-        sa.Column('text', sa.Text(convert_unicode=True), nullable=False),
+        sa.Column('text', sa.Text(), nullable=False),
         sa.Column('reply_count', sa.Integer, nullable=False),
         sa.Column('reply_users_count', sa.Integer, nullable=False),
         sa.Column('thread_ts', sa.Numeric(16, 6))

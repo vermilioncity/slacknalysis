@@ -10,14 +10,14 @@ services:
     env_file:
       - ".env"
   scraper:
-    build: './slacknalysis/'
-    image: 'scraper:latest'
+    build: './slack/'
+    image: 'slack:latest'
     volumes:
-      - "./slacknalysis:/slacknalysis"
+      - "./slack:/slack/"
     depends_on:
       - database
     env_file:
       - ".env"
-      - "scraper.env"
+      - "./slack/slack.env"
     environment:
       - DB_SERVICE=database

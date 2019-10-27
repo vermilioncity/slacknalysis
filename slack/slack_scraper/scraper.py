@@ -1,15 +1,22 @@
 import json
-from slacknalysis.data.models import Channel, User, Message, Reaction, Giphy
 import re
+
+from sqlalchemy import func, select
+import arrow
+
+from slack_scraper.models import Channel, User, Message, Reaction, Giphy
+from slack_scraper.utils import convert_timestamp_to_est
 
 
 def _get_oldest_timestamp(resp):
+
     """ Grab the oldest message's timestamp in returned payload """
 
     return float(resp['messages'][-1]['ts'])
 
 
 def create_mention_regex_map(session):
+
     """
 
     Creates a dictionary of terms to replace and their expected replacement.
@@ -17,8 +24,9 @@ def create_mention_regex_map(session):
     and maps user id mentions with user *name* mentions.
 
     """
-    mention_regex_map = {'<!(?:(\w+))>': r'@\1',  # group mentions
-                         '<#\w+\|(?:(\w+))>': r'@\1',  # channel mentions
+
+    mention_regex_map = {r'<!(?:(\w+))>': r'@\1',  # group mentions
+                         r'<#\w+\|(?:(\w+))>': r'@\1',  # channel mentions
                          }
 
     for user in session.query(User):
@@ -28,8 +36,17 @@ def create_mention_regex_map(session):
 
 
 def replace_mentions(mention_regex_map, text):
-    # https://stackoverflow.com/questions/15175142/how-can-i-do-multiple-substitutions-using-regex-in-python
-    # this looks so freakin ugly...  i should refactor this to something not gross
+
+    """
+
+    https://stackoverflow.com/questions/15175142/how-can-i-do-multiple-substitutions-using-regex-in-python
+
+    Replaces a map of regex expressions for a given string.
+
+    this looks so freakin ugly...  i should refactor this to something not gross
+
+    """
+
     mapped = map(re.escape, mention_regex_map.keys())
     regex = re.compile("(%s)" % "|".join(mapped))
 
@@ -40,6 +57,8 @@ def replace_mentions(mention_regex_map, text):
 
 
 def add_message(channel_id, message):
+
+    """ Extracts a given message's slack into a Message instance """
 
     m = Message(channel_id=channel_id,
                 ts=message.get('ts'),
@@ -54,6 +73,9 @@ def add_message(channel_id, message):
 
 
 def add_giphy(message):
+
+    """ Extracts each giphy's metadata for a given message """
+
     attachment = next(a for a in message['attachments'])
     giphy = Giphy(message_ts=message['ts'],
                   title=attachment['title'],
@@ -63,6 +85,9 @@ def add_giphy(message):
 
 
 def add_reaction(message):
+
+    """ Extracts each reaction by user for a given message """
+
     reactions = []
     for r in message.get('reactions'):
         for user in r['users']:
@@ -76,9 +101,12 @@ def add_reaction(message):
 
 
 def add_message_data_to_db(response, session, channel_id, mention_regex_map):
+
+    """ For each message, update associated tables with requisite slack """
+
     for message in response['messages']:
         if message.get('subtype') != 'message_join':
-            message['text'] = replace_mentions(message['text'], mention_regex_map)
+            message['text'] = replace_mentions(mention_regex_map, message['text'])
             m = add_message(channel_id, message)
             session.add(m)
             session.flush()
@@ -95,6 +123,7 @@ def add_message_data_to_db(response, session, channel_id, mention_regex_map):
 
 
 def download_channel_messages(slack, session, channel_id, mention_regex_map, start_timestamp, end_timestamp):
+
     """ Repeatedly request messages up until a certain date"""
 
     latest_timestamp = end_timestamp
@@ -117,7 +146,8 @@ def download_channel_messages(slack, session, channel_id, mention_regex_map, sta
             break
 
 
-def download_profile_names(slack, session):
+def download_users(slack, session):
+
     """ Queries for all users in workspace """
 
     response = slack.users.list()
@@ -135,10 +165,54 @@ def download_profile_names(slack, session):
     session.commit()
 
 
+def validate_timestamp_type(date):
+
+    """ Ensure date is either a timestamp or a format that can be converted into a timestamp """
+
+    try:
+        timestamp = float(date)
+    except TypeError:
+        try:
+            timestamp = arrow.get(date).timestamp
+        except arrow.parser.ParserError:
+            raise TypeError('Was expecting a timestamp or valid time format')
+
+    return timestamp
+
+
+def validate_start_timestamp(session, start_timestamp):
+
+    """
+    Ensures that the supplied start timestamp is not inclusive of already-queried messages.
+    Updates to the most recent timestamp if so.
+
+    """
+
+    latest_timestamp = session.query(func.max(Message.ts)).first()[0]
+
+    if latest_timestamp and start_timestamp < latest_timestamp:
+
+        print(f'There is already slack present for messages prior to {convert_timestamp_to_est(start_timestamp)}'
+              f'...  updating start_timestamp to {convert_timestamp_to_est(latest_timestamp)}...')
+
+        latest_timestamp = float(latest_timestamp) + 0.01  # add tenth of a second to avoid requerying the last message
+        return latest_timestamp
+
+    else:
+        return start_timestamp
+
+
 def download_messages_from_all_channels(slack, session, start_timestamp, end_timestamp):
-    """ Downloads all channel messages """
+
+    """ Validates dates and downloads all channel messages """
+
+    start_timestamp = validate_timestamp_type(start_timestamp)
+    end_timestamp = validate_timestamp_type(end_timestamp)
+
+    start_timestamp = validate_start_timestamp(session, start_timestamp)
 
     mention_regex_map = create_mention_regex_map(session)
 
     for channel in session.query(Channel):
-        download_channel_messages(slack, session, mention_regex_map, channel.id, start_timestamp, end_timestamp)
+        print(f'Querying {channel.name}...')
+        download_channel_messages(slack, session, channel.id, mention_regex_map, start_timestamp, end_timestamp)
