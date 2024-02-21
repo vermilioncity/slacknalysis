@@ -11,7 +11,7 @@ Slackanalysis is a personal project that scrapes and analyzes social Slack data,
 With such a robust community on Slack, I decided to learn Superset to drill down on people's communication behaviors.  This is an old project, dating back to 2020.  *Data is non-sensitive and was downloaded and analyzed with explicit permission as a hobby project.*
 
 ### Scraping data
-First, a caveat: While Superset is still functional, I believe the `slacker` libray is no longer compatible with Slack, so none of these steps will work anymore :(  Also, the Slack instance I used no longer exists.  Soooo these instructions won't work.  But let's pretend nothing is deprecated!
+First, a caveat: While Superset is still functional, the `slacker` library is no longer compatible with Slack, so none of these steps will work anymore. Moreover, the Slack instance I used no longer exists.  However, the instructions below are written pretending nothing is deprecated.
 
 To scrape Slack data, you'll need to have the following scopes enabled on Slack:
 - channels:history
