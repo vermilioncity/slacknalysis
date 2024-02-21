@@ -1,6 +1,6 @@
 # slacknalysis
 
-Slackanalysis is a personal project that scrapes and analyzes non-work social Slack data, compiling statistics on questions such as:
+Slackanalysis is a personal project that scrapes and analyzes social Slack data, compiling statistics on questions such as:
 
 - Who sends the most messages?
 - Who sends the longest messages?
