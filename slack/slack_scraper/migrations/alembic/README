@@ -1,0 +1,8 @@
+Generic single-database configuration.
+
+## Creating a migration
+alembic revision -m "..."
+
+## Executing a migration
+alembic upgrade head
+alembic downgrade head
