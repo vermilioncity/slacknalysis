@@ -1,8 +1,8 @@
 Generic single-database configuration.
 
 ## Creating a migration
-PYTHONPATH=.. alembic revision -m "..."
+alembic revision -m "..."
 
 ## Executing a migration
-PYTHONPATH=.. alembic upgrade head
-PYTHONPATH=.. alembic downgrade head
+alembic upgrade head
+alembic downgrade head

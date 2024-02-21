@@ -1,23 +1,56 @@
 version: '3'
 
 services:
-  database:
+  slack_db:
     image: 'postgres:12.0-alpine'
+    restart: on-failure:10
     ports:
       - "5432:5432"
     volumes:
-      - "./volumes/postgres:/var/lib/postgresql/data"
+      - "./volumes/slack_db:/var/lib/postgresql/data"
+      - "./slack/slack_scraper/migrations:/home/migrations"
+      - "./slack/slack_scraper/views:/home/views"
     env_file:
-      - ".env"
+      - "./slack/slack.env"
+    # entrypoint: ["/opt/applications/home/migrations/db-init.sh"]
   scraper:
     build: './slack/'
     image: 'slack:latest'
     volumes:
       - "./slack:/slack/"
     depends_on:
-      - database
+      - slack_db
     env_file:
-      - ".env"
       - "./slack/slack.env"
     environment:
       - DB_SERVICE=database
+  superset_db:
+    image: 'postgres:12.0-alpine'
+    restart: on-failure:10
+    ports:
+      - "5433:5432"
+    volumes:
+      - "./volumes/superset_db:/var/lib/postgresql/data"
+    env_file:
+      - "./superset/superset.env"
+  superset:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    build: "./superset"
+    restart: on-failure:10
+    image: "superset:latest"
+    volumes:
+      - "./superset/superset_config.py:/superset/superset_config.py"
+    env_file:
+      - "superset/superset.env"
+    environment:
+      - SUPERSET_ENV=development
+      - DB_SERVICE=superset
+      - SUPERSET_CONFIG_PATH=/superset/superset_config.py
+    ports:
+      - 8088:8088
+    depends_on:
+      - superset_db

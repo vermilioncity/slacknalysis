@@ -20,8 +20,10 @@ def upgrade():
     op.create_table(
         'messages',
         sa.Column('ts', sa.Numeric(16, 6), nullable=False, primary_key=True),
-        sa.Column('channel_id', sa.String(9), sa.ForeignKey('channels.id')),
-        sa.Column('user_id', sa.String(9), sa.ForeignKey('users.id')),
+        sa.Column('channel_id', sa.String(15), sa.ForeignKey('channels.id'), nullable=False),
+        sa.Column('channel_name', sa.String(30), sa.ForeignKey('channels.channel_name'), nullable=False),
+        sa.Column('user_id', sa.String(15), sa.ForeignKey('users.id'),  nullable=False),
+        sa.Column('user_name', sa.String(30), sa.ForeignKey('users.user_name'), nullable=False),
         sa.Column('text', sa.Text(), nullable=False),
         sa.Column('reply_count', sa.Integer, nullable=False),
         sa.Column('reply_users_count', sa.Integer, nullable=False),

@@ -13,9 +13,12 @@ def arg_parser():
 
     to_date = lambda x: arrow.get(x).timestamp
 
+    start_date = arrow.now().shift(months=-12).timestamp
+    end_date = arrow.now().timestamp
+
     parser = argparse.ArgumentParser(description='Download Slack messages and profiles')
-    parser.add_argument('--start_date', help='Start date of analysis', type=to_date)
-    parser.add_argument('--end_date', help='End date of analysis', type=to_date)
+    parser.add_argument('--start_date', help='Start date of analysis', type=to_date, default=start_date)
+    parser.add_argument('--end_date', help='End date of analysis', type=to_date, default=end_date)
 
     return parser
 

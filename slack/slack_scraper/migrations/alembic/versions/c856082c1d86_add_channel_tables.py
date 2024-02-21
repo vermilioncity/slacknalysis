@@ -27,8 +27,8 @@ def _get_channel_json_path(file):
 
 def upgrade():
     table = op.create_table('channels',
-                            sa.Column('id', sa.String(9), primary_key=True),
-                            sa.Column('name', sa.String(30), nullable=False))
+                            sa.Column('id', sa.String(15), primary_key=True),
+                            sa.Column('channel_name', sa.String(30), nullable=False, unique=True))
 
     json_path = _get_channel_json_path(__file__)
     with open(json_path) as f:

@@ -1,6 +1,6 @@
 # slacknalysis
 
-Small project to analyze some Slack data with the Slacker API client.  Can compile statistics on questions such as:
+Slackanalysis is a personal project that scrapes and analyzes non-work social Slack data, compiling statistics on questions such as:
 
 - Who sends the most messages?
 - Who sends the longest messages?
@@ -8,39 +8,62 @@ Small project to analyze some Slack data with the Slacker API client.  Can compi
 - Who is the most likely to use a particular reaction?
 - Which reactions does a person use most?
 
-## Scopes
+With such a robust community on Slack, I decided to learn Superset to drill down on people's communication behaviors.  This is an old project, dating back to 2020.
 
+### Scraping data
+First, a caveat: While Superset is still functional, I believe the `slacker` libray is no longer compatible with Slack, so none of these steps will work anymore :(  Also, the Slack instance I used no longer exists.  Soooo these instructions won't work.  But let's pretend nothing is deprecated!
+
+To scrape Slack data, you'll need to have the following scopes enabled on Slack:
 - channels:history
 - channels:read
 - emoji:read
 - reactions:read
 - users:read
 
-## Using slacknalysis
+You will also need to get a Slack verification token and set the `VERIFICATION_TOKEN` environment variable.
 
-It's assumed you have a config.py file in slacknalysis of the following structure:
-
-```python
-channels = {'channel1_name': 'channel1_id',
-            'channel2_name': 'channel2_id',
-            'channel3_name': 'channel3_id'
-            }
-
-slack_oath = 'your_oath'
+Next, you can run docker-compose:
+```
+docker-compose up --build
 ```
 
-### Downloading data
+What's happening here, you ask?
 
-slacknalysis allows you to optionally fetch data from Slack for a specified timeperiod (default is 6 months).
-`python -m slackanalysis.slacknalysis --refresh-data --months 6`
+Firstly, a Postgres container is spun up.  It invokes `slack/slack_scraper/migrations/alembic/db-init.sh`, which sets up the database and sets up views defined in `slack/slack_scraper/views`.
 
-In addition to downloading raw JSON, it will save a cleaned pandas-friendly version, *and* analyzed output (see below).  If you choose not to redownload data, but would like to reprocess the analysis (e.g., with different flags), you can simply omit the --refresh-data flag.
+Secondly, a dependent Python container is spun up that invokes `slack/slack_scraper/migrations/alembic/db-migrate.sh`.  This runs a database migration and polls Slack for data, using `python -m slack_scraper.populate_db`.  This queries Slack for data and inserts it into the database using SQLAlchemy.
 
-### Analyzing data
+Thirdly, another Postgres container is spun up for Superset.
 
-Assuming you have data on hand, slacknalysis will provide top-line analyses of all messages and reactions.  If you want analyses by user or reaction, you can pass in the users/reactions of interest with a flag.
-`python -m slacknalysis.slacknalysis --users "moe.howard" "larry.fine" "curly.howard" --reactions "joy" "+1"`
+Fourthly, a container for Superset is set up!  Now you can make charts with Slack data by going to http://localhost:8088.
 
-## Running Docker
-docker build -t pytest --file ./docker/scraper/Dockerfile .
-docker run -v 
+This was kind of a hack job for fun and never intended for production, so docker-compose just mounts a volume to store any and all Postgres data (both Slack and Superset).  Without the volume mounting, the data would all be ephemeral with the container.
+
+### Analysis
+Since this can't be run easily by anyone else at this point, here are dashboards created using this data.  People's names are anonymized.
+
+Time Analysis
+![Time Analysis](resources/time_analysis.jpg)
+
+Channel Analysis
+![Channel Analysis](resources/channel_analysis.jpg)
+
+GIF Analysis
+![GIF Analysis](resources/gif_analysis.jpg)
+
+Reaction Analysis
+![Reaction Analysis](resources/reaction_analysis.jpg)
+
+User Analysis
+![User Analysis](resources/user_analysis.jpg)
+
+Superset can be a bit tricky to work with insofar as formatting goes, so you can blame any "hm, that doesn't look great" on Superset :-)  Not pictured are filters to drill down on specific channels and users.
+
+
+### Areas of Improvement
+This was very much a fun hobby project and not meant for production purposes, and I was still fairly new to Docker at the time of designing this.  Some areas of improvement:
+- Tests!  There are none
+- Views should be created *after* the migration is completed
+- Postgres containers aren't great because they're ephemeral.  We sidestepped that here by mounting a volume and persisting data to a local computer, but ideally we could have pointed it to a real, persisting database.
+- Hosting Superset somewhere, and scheduling the Slack scraping on a regular cadence to keep up with data
+- Adding a time filter to the Superset dashboards

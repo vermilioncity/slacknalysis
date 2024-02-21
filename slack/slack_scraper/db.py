@@ -7,11 +7,11 @@ from sqlalchemy.orm import sessionmaker
 
 def get_db_url():
     base_url = 'postgresql+psycopg2://{username}:{password}@{service}:{port}/{name}'
-    db_url = base_url.format(username=os.getenv('DB_USER'),
-                             password=os.getenv('DB_PW'),
-                             service=os.getenv('DB_SERVICE'),
-                             port=os.getenv('DB_PORT'),
-                             name=os.getenv('DB_NAME'))
+    db_url = base_url.format(username=os.getenv('POSTGRES_USER'),
+                             password=os.getenv('POSTGRES_PASSWORD'),
+                             service=os.getenv('POSTGRES_SERVICE'),
+                             port=os.getenv('POSTGRES_PORT', 5432),
+                             name=os.getenv('POSTGRES_DB'))
     return db_url
 
 

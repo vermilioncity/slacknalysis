@@ -20,8 +20,10 @@ def upgrade():
     op.create_table(
         'giphys',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column('user_id', sa.String(15), sa.ForeignKey('users.id'), nullable=False),
+        sa.Column('user_name', sa.String(30), sa.ForeignKey('users.user_name'), nullable=False),
         sa.Column('message_ts', sa.Numeric(16, 6), sa.ForeignKey('messages.ts'), nullable=False),
-        sa.Column('title', sa.String(50), nullable=False),
+        sa.Column('title', sa.String(100), nullable=False),
         sa.Column('image_url', sa.String(200), nullable=False)
     )
 

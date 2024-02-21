@@ -3,12 +3,20 @@ from logging.config import fileConfig
 import os
 import sys
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
+from sqlalchemy.schema import DropTable
+from sqlalchemy.ext.compiler import compiles
 from alembic import context
 
-parent_dir = os.path.abspath(os.getcwd())
-sys.path.append(parent_dir)
+cwd = os.getcwd()
+root = os.path.dirname(os.path.dirname(cwd))
+
+sys.path.append(root)
+
+
+@compiles(DropTable, "postgresql")
+def _compile_drop_table(element, compiler, **kwargs):
+    return compiler.visit_drop_table(element) + " CASCADE"
 
 from slack_scraper.db import db_url
 

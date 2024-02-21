@@ -20,8 +20,8 @@ depends_on = None
 def upgrade():
     op.create_table(
         'users',
-        sa.Column('id', sa.String(9), primary_key=True),
-        sa.Column('name', sa.String(30), nullable=False),
+        sa.Column('id', sa.String(15), primary_key=True),
+        sa.Column('user_name', sa.String(30), nullable=False, unique=True),
     )
 
 
